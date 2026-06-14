@@ -51,13 +51,32 @@ export default function App() {
     initStore();
     const user = store.getCurrentUser();
     if (!user) { setAuthState("logged-out"); return; }
-    if (!store.isWizardDone()) { setAuthState("wizard"); return; }
+    
+    // ✅ REGLA: Master-Admin NUNCA ve el Wizard
+    if (user.role === "admin") { 
+      setAuthState("ready"); 
+      return; 
+    }
+    
+    // ✅ REGLA: Usuario Standard VE el Wizard si no está completado
+    if (!store.isWizardDone()) { 
+      setAuthState("wizard"); 
+      return; 
+    }
+    
     setAuthState("ready");
   }, []);
 
   function handleLogin() {
-    if (!store.isWizardDone()) setAuthState("wizard");
-    else setAuthState("ready");
+    const user = store.getCurrentUser();
+    // Master-Admin va directo a ready
+    if (user?.role === "admin") {
+      setAuthState("ready");
+    } else if (!store.isWizardDone()) {
+      setAuthState("wizard");
+    } else {
+      setAuthState("ready");
+    }
   }
 
   function handleWizardDone() {
